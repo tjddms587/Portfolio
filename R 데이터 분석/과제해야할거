@@ -1,0 +1,146 @@
+
+a= c(1,2,3)
+mean(a)
+
+install.packages("dplyr") # 이거는 설치하는 명령어라는데?
+install.packages("ggplot2") # ""
+
+library(dplyr)
+library(ggplot2)
+
+#이거는 파일 읽어와서경로 적어서 여기서 볼수있게 하는 거
+dt <- read.csv("C:/Users/cau/Desktop/stylesheet/4. score.csv")
+head(dt)
+tail(dt)
+dim(dt)
+View(dt)
+
+dt %>% filter(class==1)
+dt #데이터가 안변함. 그냥 필터 역할 ㅋㅋ ㅎㅇㅎㅇ
+dt %>% filter(id==1)
+dt %>% filter(class<=2)
+dt %>% filter(class==1, math>=50)
+dt %>% filter(class==1 & math>=50)
+dt %>% filter(math>=90 | english>=90)
+dt %>% filter(math>=80 & english>=80)
+
+#지혼자 신났노 필터링 하면서 크크
+c1 <- dt %>% filter(class==1)
+c2 <- dt %>% filter(class==2)
+mean(c1$math)
+mean(c2$math)
+sd(c1$math)
+sd(c2$math)
+
+subset(dt, subset=(class==1))
+
+dt %>% select(math) #수학변수에 한해서만 보여줌 변수를..
+dt %>% select(english) %>% head #잉글리시 데이터인데 위에서 6개만 보여줘 ~~
+dt %>% select(class, math) %>% head
+dt %>% select(class, math, science) %>% head
+dt %>% select(-math) %>% head #-기호를 적용시키면 똑같이.. select한 변수를 제외한 값.. 이 된다 ㅋㅎㅋ
+dt %>% filter(class==1) %>% select(english, english)
+
+# dt %>% select(english) %>% filter(class==1) 
+#이거는 순서를 고려안해서 나타나는 오류
+
+#arrange 함수
+dt %>% arrange(math) %>% head #배열하는 명령어 밑에꺼는 내림차순 이다 최재건 똥꾸멍 맛없다
+dt %>% arrange(desc(math)) %>% head
+
+# mutate 함수
+dt %>% mutate(total=math+english+science) %>% head
+dt %>% mutate(total=math+english+science, mean=total/3) %>% head
+dt %>% mutate(total=math+english+science, mean=total/3) %>% arrange(desc(mean)) %>% head
+
+dt1 <- dt %>% mutate(total=math+english+science, mean=total/3) %>% arrange(desc(mean)) %>% head(5) 
+#상위 다섯개 데이터만 따로 내림차순으로 배열 하는 dt1변수를 설정 근데 갑자기 존나 지혼자 하노 
+
+dt %>% group_by(class) %>% head
+dt %>% summarise(mean(math), sd(math)) %>% head
+
+group_by(class) %>% 
+summarise(Average_math=mean(math), Stdev_math=sd(math), Sum_math=sum(math), N=n())
+
+df1 <- data.frame(id=c(1,2,3), midterm=c(60,80,70))
+df2 <- data.frame(id=c(1,2,3), final=c(70,83,65))
+df1
+df2
+left_join(df1, df2, by="id")
+
+df1 <- data.frame(id=c(1,2,3), test=c(60,80,70))
+df2 <- data.frame(id=c(4,5,6), test=c(70,83,65))
+df1
+df2
+bind_rows(df1, df2)
+
+#데이터 전처리 예제 2
+#ggplot2 package를 설치하면 사용할 수 있는 mpg 데이터 사용
+library(ggplot2)
+head(mpg)
+
+#1번 : displ(배기량)이 4이하인 자동차와 5이상인 자동차 중 어떤 자동차의 hwy가 평균적으로 높은지
+#4이하인 자동차의 배기량 / 5이상인 자동차의 배기량 평균을 구하고 비교
+mpg_a <- mpg %>% filter(displ<=4)
+mpg_b <- mpg %>% filter(displ>=5)
+mean(mpg_a$hwy)
+mean(mpg_b$hwy) #$hwy는 변수를 지정해주는거다.
+
+#2번 : audi와 도요타중 어느 메뉴팩쳐의 cty가 평균적으로 높은지
+# audi제조사를 필터해서 cty의 평균 / 도요타 제조사를 필터 후 cty의 평균 구하고 비교
+mpg_audi <- mpg %>% filter(manufacturer=="audi")
+mpg_toyota <- mpg %>% filter(manufacturer=="toyota")
+mean(mpg_audi$cty)
+mean(mpg_toyota$cty)
+
+#3번 : chevorlet ford honda 자동차의 hwy 전체 평균을 계산
+# 필터링 hwy하고 total써서 3개 자동차의 평균을 계산
+mpg_cfh <- mpg %>% filter(manufacturer %in% c("chevrolet", "ford", "honda")) 
+#퍼센테이지 기호는 이거에 해당하는 것만 뽑아냄
+mean(mpg_cfh$hwy)
+
+#4번 : class, cty변수를 추출해서 새로운 데이터 만들고, class가 suv인 자동차와 compact인 자동차중
+#어느 자동차의 cty가 높은지
+# 1. filter와 select로 데이터 만들고, 2. class를 기준으로 suv의 cty 값과 compact cty 값을 비교
+dt <- mpg %>% select(class, cty)
+dt
+dt_suv <- dt %>% filter(class=="suv")
+dt_compact <- dt %>% filter(class=="compact")
+mean(dt_suv$cty)
+mean(dt_compact$cty)
+
+
+#5번 : audi에서 생산한 자동차 중 hwy가 1~5위에 해당하는 자동차의 테이터를 출력
+# filter로 audi 잡고 hwy 잡고 head(5) arrange(desc(hwy))써서 내림차순써야함 
+mpg %>% filter(manufacturer=="audi") %>% arrange(desc(hwy)) %>% head(5)
+
+
+#6번 : mpg 데이터의 복사본에 cty와 hwy를 더한 합산 연비 변수를 추가하시오
+# 즉 파생변수를 하나 만들어서 집어넣어야함. mutate 함수 사용
+dt <- mpg
+dt <- dt %>% mutate(total=cty+hwy)
+head(dt)
+head(dt$total) #확인 할려면 이렇게 해도됨 변수가 추가 되었는지
+
+#7번 : 합산 연비 변수를 2로 나눠 평균연비 변수를 추가하는 것
+dt <- dt %>% mutate(mean=total/2)
+head(dt)
+#head(dt$mean)
+
+#8번 : 평균 연비변수가 가장 높은 자동차 3종의 데이터를 출력
+dt <- dt %>% arrange(desc(mean)) %>% head(3)
+head(dt)
+
+#아니면 dt1 <- dt %>% arrange(desc(mean)) %>% head(3)
+#head(dt$mean) 하 시발 개많노.. 진짜
+
+
+
+
+
+
+
+
+
+at <- read.csv("C:/Users/cau/Desktop/stylesheet/3. students.csv")
+View(at)
